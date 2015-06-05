@@ -26,10 +26,9 @@
   },
 
   "devDependencies": {
-    "mocha": "*",
-    "chai": ">=1.9.2 <3",
-    "sinon-chai": "*",
-    "sinon": "*"
+    "jasmine-node"   :  ">= 1.11.0 <2",
+    "hubot-mock-adapter": ">= 1.0.0",
+    "hubot": ">= 2.5.6"
   },
 
   "main": "index.coffee",
