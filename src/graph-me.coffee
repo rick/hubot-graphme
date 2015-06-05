@@ -14,5 +14,11 @@
 #   Rick Bradley (github.com/rick, rick@rickbradley.com)
 
 module.exports = (robot) ->
+  robot.respond /env/, (msg) ->
+    msg.reply graphite_url()
+
   robot.respond /graph( me)?\s+/, (msg) ->
-    msg.reply "graphing."
+    if process.env["HUBOT_GRAPHITE_URL"]
+      msg.reply "graphing."
+    else
+      msg.reply "HUBOT_GRAPHITE_URL is unset."
