@@ -29,10 +29,10 @@ describe "graph-me", () ->
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_URL/
 
-  it 'responds to requests to `/graph `', () ->
-    hubot "graph whatever"
-    assertHubotResponse "graphing."
+  it 'responds to requests to `/graph` with an offer of help', () ->
+    hubot "graph"
+    assertHubotResponse "Type: `help graph` for usage info"
 
-  it 'responds to requests to `/graph me`', () ->
-    hubot "graph me whatever"
-    assertHubotResponse "graphing."
+  it 'responds to requests to `/graph me` with an offer of help', () ->
+    hubot "graph me"
+    assertHubotResponse "Type: `help graph` for usage info"
