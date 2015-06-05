@@ -9,7 +9,7 @@
     "hubot",
     "hubot-scripts",
     "graphite",
-    "graph",
+    "graph"
   ],
 
   "repository": {
@@ -27,7 +27,7 @@
 
   "devDependencies": {
     "mocha": "*",
-    "chai": "*",
+    "chai": ">=1.9.2 <3",
     "sinon-chai": "*",
     "sinon": "*"
   },
