@@ -12,6 +12,10 @@
     "graph"
   ],
 
+  "scripts": {
+    "test": "cake test"
+  },
+
   "repository": {
     "type": "git",
     "url": "git://github.com/rick/hubot-graphme.git"
@@ -26,15 +30,11 @@
   },
 
   "devDependencies": {
-    "mocha": "*",
-    "jasmine-node"   :  ">= 1.11.0 <2",
-    "hubot-mock-adapter": ">= 1.0.0",
-    "hubot": ">= 2.5.6"
+    "chai":          ">=1.9.2 <3",
+    "mocha":         "~2.2.5",
+    "coffee-script": ">=1.6.3",
+    "hubot-test-helper": "0.0.2"
   },
 
-  "main": "index.coffee",
-
-  "scripts": {
-    "test": "script/test"
-  }
+  "main": "index.coffee"
 }

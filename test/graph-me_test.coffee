@@ -1,33 +1,20 @@
-path = require 'path'
-Robot = require 'hubot/src/robot'
-messages = require 'hubot/src/message'
+Path   = require("path")
+Helper = require('hubot-test-helper')
 
-describe 'graph-me', ->
-  robot = null
-  adapter = null
-  user = null
+pkg = require Path.join __dirname, "..", 'package.json'
+pkgVersion = pkg.version
 
-  beforeEach ->
-    robot = new Robot(null, 'mock-adapter', false, 'Hubot')
-    robot.adapter.on 'connected', ->
-      (require '../src/graph-me')(robot)
-      user = robot.brain.userForId('1', name: 'jasmine', room: '#jasmine')
-      adapter = robot.adapter
-    robot.run()
+room   = null
+helper = new Helper(Path.join(__dirname, "..", "src", "graph-me.coffee"))
 
-  afterEach ->
-    robot.shutdown()
+describe "graph-me", () ->
+  beforeEach () ->
+    room = helper.createRoom()
 
-  say = (msg) ->
-    adapter.receive new messages.TextMessage(user, msg)
+  it 'responds to requests to `/graph `', () ->
+    room.user.say 'atmos', 'hubot graph whatever'
+    assert.deepEqual ['hubot', "@atmos graphing."], room.messages[1]
 
-  expectHubotToSay = (msg, done) ->
-    adapter.on 'send', (envelope, strings) ->
-      (expect strings[0]).toMatch msg
-      done()
-
-
-  it 'responds to requests to `/graph me`', (done) ->
-    expectHubotToSay 'graphing.'
-    say 'hubot graph me whatever'
-    done()
+  it 'responds to requests to `/graph me`', () ->
+    room.user.say 'atmos', 'hubot graph me whatever'
+    assert.deepEqual ['hubot', "@atmos graphing."], room.messages[1]
