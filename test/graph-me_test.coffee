@@ -5,6 +5,7 @@ pkg = require Path.join __dirname, "..", 'package.json'
 pkgVersion = pkg.version
 
 room   = null
+url    = null
 helper = new Helper(Path.join(__dirname, "..", "src", "graph-me.coffee"))
 
 describe "graph-me", () ->
@@ -19,7 +20,8 @@ describe "graph-me", () ->
     assert.deepEqual ['hubot', "@rick #{expected}"], room.messages[1]
 
   beforeEach () ->
-    process.env["HUBOT_GRAPHITE_URL"] = "https://graphite.example.com/"
+    url = "https://graphite.example.com/"
+    process.env["HUBOT_GRAPHITE_URL"] = url
     room = helper.createRoom()
 
   # -----------------------------------------------------
@@ -36,3 +38,7 @@ describe "graph-me", () ->
   it 'responds to requests to `/graph me` with an offer of help', () ->
     hubot "graph me"
     assertHubotResponse "Type: `help graph` for usage info"
+
+  it 'when given a basic target, responds with a target URL', () ->
+    hubot "graph me servers.*.cpuload"
+    assertHubotResponse "#{url}/render?target=servers.*.cpuload"
