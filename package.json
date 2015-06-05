@@ -1,22 +1,24 @@
 {
-  "name": "hubot-example",
-  "description": "An example script package for Hubot",
-  "version": "1.0.0",
-  "author": "Tom Bell <tomb@tomb.io>",
+  "name": "hubot-graphme",
+  "description": "Add /graph me support for graphite to hubot",
+  "version": "0.0.1",
+  "author": "Rick Bradley <rick@rickbradley.com>",
   "license": "MIT",
 
   "keywords": [
     "hubot",
-    "hubot-scripts"
+    "hubot-scripts",
+    "graphite",
+    "graph",
   ],
 
   "repository": {
     "type": "git",
-    "url": "git://github.com/hubot-scripts/hubot-example.git"
+    "url": "git://github.com/rick/hubot-graphme.git"
   },
 
   "bugs": {
-    "url": "https://github.com/hubot-scripts/hubot-example/issues"
+    "url": "https://github.com/rick/hubot-graphme/issues"
   },
 
   "dependencies": {
