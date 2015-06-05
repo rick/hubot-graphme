@@ -11,16 +11,16 @@ describe "graph-me", () ->
   beforeEach () ->
     room = helper.createRoom()
 
-  say = (room, message) ->
-    room.user.say 'rick', message
+  hubot = (message) ->
+    room.user.say "rick", "hubot #{message}"
 
-  assertResponse = (room, expected) ->
+  assertHubotResponse = (expected) ->
     assert.deepEqual ['hubot', "@rick #{expected}"], room.messages[1]
 
   it 'responds to requests to `/graph `', () ->
-    say room, "hubot graph whatever"
-    assertResponse room, "graphing."
+    hubot "graph whatever"
+    assertHubotResponse "graphing."
 
   it 'responds to requests to `/graph me`', () ->
-    say room, "hubot graph me whatever"
-    assertResponse room, "graphing."
+    hubot "graph me whatever"
+    assertHubotResponse "graphing."
