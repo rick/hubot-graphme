@@ -8,7 +8,8 @@
 #   None
 #
 # Commands:
-#   hubot graph me summarize(vmpooler.running.*,"1h") - show a graph for a graphite query using a target
+#   hubot graph me vmpooler.running.*     - show a graph for a graphite query using a target
+#   hubot graph me -1h vmpooler.running.* - show a graphite graph with a target and a from time
 #
 # Author:
 #   Rick Bradley (github.com/rick, rick@rickbradley.com)
