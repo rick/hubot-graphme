@@ -8,7 +8,7 @@
 #   None
 #
 # Commands:
-#   hubot graph me servers.*.cpuload - show a graph for a graphite query using a target
+#   hubot graph me summarize(vmpooler.running.*,"1h") - show a graph for a graphite query using a target
 #
 # Author:
 #   Rick Bradley (github.com/rick, rick@rickbradley.com)

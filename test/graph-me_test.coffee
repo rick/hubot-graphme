@@ -40,5 +40,5 @@ describe "graph-me", () ->
     assertHubotResponse "Type: `help graph` for usage info"
 
   it 'when given a basic target, responds with a target URL', () ->
-    hubot "graph me servers.*.cpuload"
-    assertHubotResponse "#{url}/render?target=servers.*.cpuload"
+    hubot 'graph me summarize(vmpooler.running.*,"1h")'
+    assertHubotResponse "#{url}/render?target=summarize(vmpooler.running.*,\"1h\")"
