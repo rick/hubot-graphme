@@ -20,8 +20,8 @@ describe "graph-me", () ->
     assert.deepEqual ['hubot', "@rick #{expected}"], room.messages[1]
 
   beforeEach () ->
-    url = "https://graphite.example.com/"
-    process.env["HUBOT_GRAPHITE_URL"] = url
+    url = "https://graphite.example.com"
+    process.env["HUBOT_GRAPHITE_URL"] = url + "/"
     room = helper.createRoom()
 
   # -----------------------------------------------------
@@ -30,6 +30,12 @@ describe "graph-me", () ->
     delete process.env.HUBOT_GRAPHITE_URL
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_URL/
+
+  it 'eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL', () ->
+    process.env["HUBOT_GRAPHITE_URL"] = url + '/'
+    hubot "graph me vmpooler.running.debian-6-x386"
+    assertHubotResponse "https://graphite.example.com/render?target=vmpooler.running.debian-6-x386"
+
 
   it 'responds to requests to `/graph` with an offer of help', () ->
     hubot "graph"
@@ -40,5 +46,20 @@ describe "graph-me", () ->
     assertHubotResponse "Type: `help graph` for usage info"
 
   it 'when given a basic target, responds with a target URL', () ->
-    hubot 'graph me summarize(vmpooler.running.*,"1h")'
-    assertHubotResponse "#{url}/render?target=summarize(vmpooler.running.*,\"1h\")"
+    hubot 'graph me vmpooler.running.*'
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*"
+
+  it 'when given a duration and a target, responds with a URL with duration', () ->
+    hubot 'graph me -1h vmpooler.running.*'
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h"
+
+  it 'rejects invalid durations', () ->
+    hubot "graph me -1b vmpooler.running.*"
+    assert.match hubotResponse(), /duration/
+
+    hubot "graph me -1monday vmpooler.running.*"
+    assert.match hubotResponse(), /duration/
+
+  it 'converts -1m to -1min', () ->
+    hubot "graph me -1m vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min"
