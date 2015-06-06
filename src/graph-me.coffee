@@ -16,8 +16,6 @@
 
 module.exports = (robot) ->
 
-  durationPattern = /(-\d+(?:s|m|min|mon|h|d|w|y))/
-
   encodeParams = (data) ->
     Object.keys(data).map((key) ->
       [
@@ -26,27 +24,42 @@ module.exports = (robot) ->
       ].map(encodeURIComponent).join '='
     ).join '&'
 
-  robot.respond /env/, (msg) ->
-    msg.reply graphite_url()
+  robot.respond ///
+    graph(?:\s+me)?                       # graph me
 
-  robot.respond /graph(?:\s+me)?(?:\s+(-\d+\w+))?(?:\s+(.*))?/, (msg) ->
+    (?:
+      (?:\s+
+        (                                 # \1 - capture
+          (?:                             # relative from time
+            -\d+                          # -5
+            (?:s|m|min|mon|h|d|w|y)\w*    # s, sec, m, min, mon, h, hours, d, days, ...
+          )
+          |
+          (?:                             # absolute from time
+            [-_:\/+a-zA-Z0-9]+            # "today", "1/1/2014", "now-5days", "04:00_20110501", etc.
+          )
+        )
+      )?                                  # from times are optional
+
+      (?:\s+                              # graphite target string
+        (.*)                              # \2 - capture
+      )
+    )?                                    # time + target is also optional
+  ///, (msg) ->
+
     if process.env["HUBOT_GRAPHITE_URL"]
-      url = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, "")
+      url = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, '') # drop trailing '/'s
       from   = msg.match[1]
       target = msg.match[2]
 
       if target
         params = { target: target }
-
         if from?
-          if from.match durationPattern
+          if from.match /^-/              # relative from time
             from += "in" if from.match /-\d+m$/ # -1m -> -1min
-            params["from"] = from.replace(/(-\d+m)$/, )
-          else
-            msg.reply "could not understand from/duration (#{from})"
+          params["from"] = from
 
         msg.reply "#{url}/render?#{encodeParams(params)}"
-
       else
         msg.reply "Type: `help graph` for usage info"
     else

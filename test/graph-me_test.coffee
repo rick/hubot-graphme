@@ -11,6 +11,7 @@ helper = new Helper(Path.join(__dirname, "..", "src", "graph-me.coffee"))
 describe "graph-me", () ->
 
   hubot = (message) ->
+    room.messages = []
     room.user.say "rick", "hubot #{message}"
 
   hubotResponse = () ->
@@ -36,7 +37,6 @@ describe "graph-me", () ->
     hubot "graph me vmpooler.running.debian-6-x386"
     assertHubotResponse "https://graphite.example.com/render?target=vmpooler.running.debian-6-x386"
 
-
   it 'responds to requests to `/graph` with an offer of help', () ->
     hubot "graph"
     assertHubotResponse "Type: `help graph` for usage info"
@@ -53,13 +53,16 @@ describe "graph-me", () ->
     hubot 'graph me -1h vmpooler.running.*'
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h"
 
-  it 'rejects invalid durations', () ->
-    hubot "graph me -1b vmpooler.running.*"
-    assert.match hubotResponse(), /duration/
-
-    hubot "graph me -1monday vmpooler.running.*"
-    assert.match hubotResponse(), /duration/
-
-  it 'converts -1m to -1min', () ->
+  it 'converts -1m to -1min in from span', () ->
     hubot "graph me -1m vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min"
+
+  it 'supports absolute from times', () ->
+    hubot "graph me today vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today"
+
+    hubot "graph me 1/1/2014 vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=1%2F1%2F2014"
+
+    hubot "graph me now-5days vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=now-5days"
