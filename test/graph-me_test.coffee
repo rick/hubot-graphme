@@ -23,6 +23,9 @@ describe "graph-me", () ->
   beforeEach () ->
     url = "https://graphite.example.com"
     process.env["HUBOT_GRAPHITE_URL"] = url + "/"
+    process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucketname"
+    process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "1234567890"
+    process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"] = "987543210"
     room = helper.createRoom()
 
   # -----------------------------------------------------
@@ -31,6 +34,21 @@ describe "graph-me", () ->
     delete process.env.HUBOT_GRAPHITE_URL
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_URL/
+
+  it 'fails if HUBOT_GRAPHITE_S3_BUCKET is not set', () ->
+    delete process.env.HUBOT_GRAPHITE_S3_BUCKET
+    hubot "graph whatever"
+    assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_BUCKET/
+
+  it 'fails if HUBOT_GRAPHITE_S3_ACCESS_KEY_ID is not set', () ->
+    delete process.env.HUBOT_GRAPHITE_S3_ACCESS_KEY_ID
+    hubot "graph whatever"
+    assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_ACCESS_KEY_ID/
+
+  it 'fails if HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY is not set', () ->
+    delete process.env.HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY
+    hubot "graph whatever"
+    assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY/
 
   it 'eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL', () ->
     process.env["HUBOT_GRAPHITE_URL"] = url + '/'

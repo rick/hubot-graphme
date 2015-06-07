@@ -5,7 +5,10 @@
 #   None
 #
 # Configuration:
-#   HUBOT_GRAPHITE_URL - Location where graphite installation can be found (e.g., "https://graphite.domain.com")
+#   HUBOT_GRAPHITE_URL                  - Location where graphite web interface can be found (e.g., "https://graphite.domain.com")
+#   HUBOT_GRAPHITE_S3_BUCKET            - Amazon S3 bucket where graph snapshots will be stored
+#   HUBOT_GRAPHITE_S3_ACCESS_KEY_ID     - Amazon S3 access key ID for snapshot storage
+#   HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY - Amazon S3 secret access key for snapshot storage
 #
 # Commands:
 #   hubot graph me vmpooler.running.*                                    - show a graph for a graphite query using a target
@@ -17,6 +20,24 @@
 #   Rick Bradley (rick@rickbradley.com, github.com/rick)
 
 module.exports = (robot) ->
+
+  notConfigured = () ->
+    result = []
+    result.push "HUBOT_GRAPHITE_URL" unless process.env['HUBOT_GRAPHITE_URL']
+    result.push "HUBOT_GRAPHITE_S3_BUCKET" unless process.env['HUBOT_GRAPHITE_S3_BUCKET']
+    result.push "HUBOT_GRAPHITE_S3_ACCESS_KEY_ID" unless process.env['HUBOT_GRAPHITE_S3_ACCESS_KEY_ID']
+    result.push "HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY" unless process.env['HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY']
+    result
+
+  isConfigured = () ->
+    notConfigured().length == 0
+
+  s3Credentials = () ->
+    {
+      bucket: process.env['HUBOT_GRAPHITE_URL'],
+      access_key_id: process.env['HUBOT_GRAPHITE_S3_ACCESS_KEY_ID'],
+      secret_access_key: process.env['HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY']
+    }
 
   timePattern = '(?:[-_:\/+a-zA-Z0-9]+)'
 
@@ -43,7 +64,7 @@ module.exports = (robot) ->
     )?                                    # time + target is also optional
   ///, (msg) ->
 
-    if process.env["HUBOT_GRAPHITE_URL"]
+    if isConfigured()
       url = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, '') # drop trailing '/'s
       from    = msg.match[1]
       through = msg.match[2]
@@ -67,4 +88,4 @@ module.exports = (robot) ->
       else
         msg.reply "Type: `help graph` for usage info"
     else
-      msg.reply "HUBOT_GRAPHITE_URL is unset."
+      msg.reply "Configuration variables are not set: #{notConfigured().join(", ")}."
