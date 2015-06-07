@@ -19,6 +19,11 @@
 # Author:
 #   Rick Bradley (rick@rickbradley.com, github.com/rick)
 
+crypto  = require "crypto"
+util    = require "util"
+knox    = require "knox"
+http    = require "http"
+
 module.exports = (robot) ->
 
   notConfigured = () ->
@@ -32,12 +37,44 @@ module.exports = (robot) ->
   isConfigured = () ->
     notConfigured().length == 0
 
-  s3Credentials = () ->
-    {
-      bucket: process.env['HUBOT_GRAPHITE_URL'],
-      access_key_id: process.env['HUBOT_GRAPHITE_S3_ACCESS_KEY_ID'],
-      secret_access_key: process.env['HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY']
+  config = {
+      bucket          : process.env['HUBOT_GRAPHITE_S3_BUCKET'],
+      accessKeyId     : process.env['HUBOT_GRAPHITE_S3_ACCESS_KEY_ID'],
+      secretAccessKey : process.env['HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY'],
+      region          : "us-east-1" # TODO make this configurable
     }
+
+  AWSCredentials = {
+      accessKeyId     : config["accessKeyId"]
+      secretAccessKey : config["secretAccessKey"]
+      region          : config["region"]
+    }
+
+  # Fetch an image from provided URL, upload it to S3, returning the resulting URL
+  fetchAndUpload = (msg, url) ->
+    client = knox.createClient {
+      key    : AWSCredentials["accessKeyId"]
+      secret : AWSCredentials["secretAccessKey"],
+      bucket : config["bucket"]
+    }
+
+    # pick a random filename
+    filename = "hubot-graphme/" + crypto.randomBytes(20).toString('hex') + ".png"
+
+    http.get('http://github.com/rick.png', (res) ->
+      msg.reply "Inside #{util.inspect(res)}"
+
+      headers =
+        'Content-Length': res.headers['content-length']
+        'Content-Type': res.headers['content-type']
+
+      client.putStream res, filename, headers, (err, res) ->
+        if !err
+          msg.reply "https://s3.amazonaws.com/#{bucket}/#{filename}"
+        else
+          msg.reply "Error: #{err}"
+    ).on 'error', (e) ->
+      msg.reply "Got an error: #{e}"
 
   timePattern = '(?:[-_:\/+a-zA-Z0-9]+)'
 
@@ -84,10 +121,12 @@ module.exports = (robot) ->
             through += "in" if through.match /\d+m$/ # -1m -> -1min
             result.push "until=#{encodeURIComponent(through)}"
 
-
         result.push "format=png"
         graphiteURL = "#{url}/render?#{result.join("&")}"
+
         msg.reply graphiteURL
+
+        fetchAndUpload(msg, graphiteURL)
       else
         msg.reply "Type: `help graph` for usage info"
     else

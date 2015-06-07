@@ -7,25 +7,35 @@ pkgVersion = pkg.version
 room   = null
 url    = null
 helper = new Helper(Path.join(__dirname, "..", "src", "graph-me.coffee"))
+util    = require "util"
 
 describe "graph-me", () ->
 
+  # say something to Hubot
   hubot = (message) ->
     room.messages = []
-    room.user.say "rick", "hubot #{message}"
+    room.user.say "otheruser", "hubot #{message}"
+    room.messages.shift()
 
+  # return Hubot's next response
   hubotResponse = () ->
-    room.messages[1][1]
+    room.messages[0][1]
 
-  assertHubotResponse = (expected, offset = 1) ->
-    assert.deepEqual room.messages[offset], ['hubot', "@rick #{expected}"]
+  # assert that Hubot's next response is the passed `expected` message
+  assertHubotResponse = (expected) ->
+    assert.deepEqual room.messages[0], ['hubot', "@otheruser #{expected}"]
+
+  # skip past a line of Hubot's response
+  skipHubotResponse = () ->
+    room.messages.shift()
 
   beforeEach () ->
     url = "https://graphite.example.com"
+    url = "https://graphite.ops.puppetlabs.net"
     process.env["HUBOT_GRAPHITE_URL"] = url + "/"
-    process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucketname"
-    process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "1234567890"
-    process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"] = "987543210"
+    process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucket"
+    process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "access_key_id"
+    process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"] = "secret_access_key"
     room = helper.createRoom()
 
   # -----------------------------------------------------
@@ -51,9 +61,9 @@ describe "graph-me", () ->
     assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY/
 
   it 'eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL', () ->
-    process.env["HUBOT_GRAPHITE_URL"] = url + '/'
+    process.env["HUBOT_GRAPHITE_URL"] = url + '///'
     hubot "graph me vmpooler.running.debian-6-x386"
-    assertHubotResponse "https://graphite.example.com/render?target=vmpooler.running.debian-6-x386&format=png"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.debian-6-x386&format=png"
 
   it 'responds to requests to `/graph` with an offer of help', () ->
     hubot "graph"
@@ -107,3 +117,8 @@ describe "graph-me", () ->
 
     hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")  +  x.y.z   "
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
+
+  it 'uploads an image snapshot to S3', () ->
+    hubot "graph me whatever"
+    skipHubotResponse()
+    assertHubotResponse "foo"
