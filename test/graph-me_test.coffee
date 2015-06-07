@@ -18,7 +18,7 @@ describe "graph-me", () ->
     room.messages[1][1]
 
   assertHubotResponse = (expected) ->
-    assert.deepEqual ['hubot', "@rick #{expected}"], room.messages[1]
+    assert.deepEqual room.messages[1], ['hubot', "@rick #{expected}"]
 
   beforeEach () ->
     url = "https://graphite.example.com"
@@ -49,11 +49,11 @@ describe "graph-me", () ->
     hubot 'graph me vmpooler.running.*'
     assertHubotResponse "#{url}/render?target=vmpooler.running.*"
 
-  it 'when given a duration and a target, responds with a URL with duration', () ->
+  it 'when given a from time and a target, responds with a URL with from time', () ->
     hubot 'graph me -1h vmpooler.running.*'
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h"
 
-  it 'converts -1m to -1min in from span', () ->
+  it 'converts -1m to -1min in from time', () ->
     hubot "graph me -1m vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min"
 
@@ -66,3 +66,13 @@ describe "graph-me", () ->
 
     hubot "graph me now-5days vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=now-5days"
+
+  it 'supports time ranges', () ->
+    hubot "graph me -6days..-1h vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=-1h"
+
+    hubot "graph me today..-1h vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today&until=-1h"
+
+    hubot "graph me -6days..today vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=today"
