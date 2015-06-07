@@ -30,7 +30,7 @@ module.exports = (robot) ->
   robot.respond ///
     graph(?:\s+me)?                       # graph me
 
-    (?:
+    (?:                                   # optional time range
       (?:\s+
         (#{timePattern})                  # \1 - capture (from)
         (?:
@@ -38,7 +38,7 @@ module.exports = (robot) ->
           (#{timePattern})                # \2 - capture (until)
         )?
       )?
-                                        # from times are optional
+
       (?:\s+                              # graphite target string
         (.*)                              # \3 - capture
       )
@@ -55,11 +55,11 @@ module.exports = (robot) ->
         params = { target: target }
 
         if from?
-          from += "in" if from.match /^-\d+m$/ # -1m -> -1min
+          from += "in" if from.match /\d+m$/ # -1m -> -1min
           params["from"] = from
 
           if through?
-            through += "in" if through.match /^-\d+m$/ # -1m -> -1min
+            through += "in" if through.match /\d+m$/ # -1m -> -1min
             params["until"] = through
 
         msg.reply "#{url}/render?#{encodeParams(params)}"
