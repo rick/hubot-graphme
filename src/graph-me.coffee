@@ -5,26 +5,18 @@
 #   None
 #
 # Configuration:
-#   None
+#   HUBOT_GRAPHITE_URL - Location where graphite installation can be found (e.g., "https://graphite.domain.com")
 #
 # Commands:
 #   hubot graph me vmpooler.running.*                                    - show a graph for a graphite query using a target
 #   hubot graph me -1h vmpooler.running.*                                - show a graphite graph with a target and a from time
 #   hubot graph me -6h..-1h vmpooler.running.*                           - show a graphite graph with a target and a time range
-#   hubot graph me -6h..-1h foo.bar.baz + summarize(bar.baz.foo, "1day") - show a graphite graph with multiple targets
+#   hubot graph me -6h..-1h foo.bar.baz + summarize(bar.baz.foo,"1day")  - show a graphite graph with multiple targets
 #
 # Author:
 #   Rick Bradley (rick@rickbradley.com, github.com/rick)
 
 module.exports = (robot) ->
-
-  encodeParams = (data) ->
-    Object.keys(data).map((key) ->
-      [
-        key
-        data[key]
-      ].map(encodeURIComponent).join '='
-    ).join '&'
 
   timePattern = '(?:[-_:\/+a-zA-Z0-9]+)'
 
