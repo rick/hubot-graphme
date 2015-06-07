@@ -76,3 +76,16 @@ describe "graph-me", () ->
 
     hubot "graph me -6days..today vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=today"
+
+  it 'supports multiple targets', () ->
+    hubot "graph me vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)"
+
+    hubot "graph me -6days vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&from=-6days"
+
+    hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&from=-6days&until=-1h"
+
+    hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")  +  x.y.z   "
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h"

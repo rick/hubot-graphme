@@ -8,12 +8,13 @@
 #   None
 #
 # Commands:
-#   hubot graph me vmpooler.running.*          - show a graph for a graphite query using a target
-#   hubot graph me -1h vmpooler.running.*      - show a graphite graph with a target and a from time
-#   hubot graph me -6h..-1h vmpooler.running.* - show a graphite graph with a target and a time range
+#   hubot graph me vmpooler.running.*                                    - show a graph for a graphite query using a target
+#   hubot graph me -1h vmpooler.running.*                                - show a graphite graph with a target and a from time
+#   hubot graph me -6h..-1h vmpooler.running.*                           - show a graphite graph with a target and a time range
+#   hubot graph me -6h..-1h foo.bar.baz + summarize(bar.baz.foo, "1day") - show a graphite graph with multiple targets
 #
 # Author:
-#   Rick Bradley (github.com/rick, rick@rickbradley.com)
+#   Rick Bradley (rick@rickbradley.com, github.com/rick)
 
 module.exports = (robot) ->
 
@@ -39,8 +40,13 @@ module.exports = (robot) ->
         )?
       )?
 
-      (?:\s+                              # graphite target string
-        (.*)                              # \3 - capture
+      (?:\s+                              # graphite targets
+        (                                 # \3 - capture
+          \S+                             # a graphite target
+          (?:\s+\+\s+                     # " + "
+            \S+                           # more graphite targets
+          )*
+        )
       )
     )?                                    # time + target is also optional
   ///, (msg) ->
@@ -49,20 +55,23 @@ module.exports = (robot) ->
       url = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, '') # drop trailing '/'s
       from    = msg.match[1]
       through = msg.match[2]
-      target  = msg.match[3]
+      targets  = msg.match[3]
 
-      if target
-        params = { target: target }
+      result = []
+
+      if targets
+        targets.split(/\s+\+\s+/).map (target) ->
+          result.push "target=#{encodeURIComponent(target)}"
 
         if from?
           from += "in" if from.match /\d+m$/ # -1m -> -1min
-          params["from"] = from
+          result.push "from=#{encodeURIComponent(from)}"
 
           if through?
             through += "in" if through.match /\d+m$/ # -1m -> -1min
-            params["until"] = through
+            result.push "until=#{encodeURIComponent(through)}"
 
-        msg.reply "#{url}/render?#{encodeParams(params)}"
+        msg.reply "#{url}/render?#{result.join("&")}"
       else
         msg.reply "Type: `help graph` for usage info"
     else
