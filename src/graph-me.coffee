@@ -84,7 +84,10 @@ module.exports = (robot) ->
             through += "in" if through.match /\d+m$/ # -1m -> -1min
             result.push "until=#{encodeURIComponent(through)}"
 
-        msg.reply "#{url}/render?#{result.join("&")}"
+
+        result.push "format=png"
+        graphiteURL = "#{url}/render?#{result.join("&")}"
+        msg.reply graphiteURL
       else
         msg.reply "Type: `help graph` for usage info"
     else

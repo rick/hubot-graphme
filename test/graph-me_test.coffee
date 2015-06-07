@@ -17,8 +17,8 @@ describe "graph-me", () ->
   hubotResponse = () ->
     room.messages[1][1]
 
-  assertHubotResponse = (expected) ->
-    assert.deepEqual room.messages[1], ['hubot', "@rick #{expected}"]
+  assertHubotResponse = (expected, offset = 1) ->
+    assert.deepEqual room.messages[offset], ['hubot', "@rick #{expected}"]
 
   beforeEach () ->
     url = "https://graphite.example.com"
@@ -53,7 +53,7 @@ describe "graph-me", () ->
   it 'eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL', () ->
     process.env["HUBOT_GRAPHITE_URL"] = url + '/'
     hubot "graph me vmpooler.running.debian-6-x386"
-    assertHubotResponse "https://graphite.example.com/render?target=vmpooler.running.debian-6-x386"
+    assertHubotResponse "https://graphite.example.com/render?target=vmpooler.running.debian-6-x386&format=png"
 
   it 'responds to requests to `/graph` with an offer of help', () ->
     hubot "graph"
@@ -65,45 +65,45 @@ describe "graph-me", () ->
 
   it 'when given a basic target, responds with a target URL', () ->
     hubot 'graph me vmpooler.running.*'
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&format=png"
 
   it 'when given a from time and a target, responds with a URL with from time', () ->
     hubot 'graph me -1h vmpooler.running.*'
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h&format=png"
 
   it 'converts -1m to -1min in from time', () ->
     hubot "graph me -1m vmpooler.running.*"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min&format=png"
 
   it 'supports absolute from times', () ->
     hubot "graph me today vmpooler.running.*"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today&format=png"
 
     hubot "graph me 1/1/2014 vmpooler.running.*"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=1%2F1%2F2014"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=1%2F1%2F2014&format=png"
 
     hubot "graph me now-5days vmpooler.running.*"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=now-5days"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=now-5days&format=png"
 
   it 'supports time ranges', () ->
     hubot "graph me -6days..-1h vmpooler.running.*"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=-1h"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=-1h&format=png"
 
     hubot "graph me today..-1h vmpooler.running.*"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today&until=-1h"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today&until=-1h&format=png"
 
     hubot "graph me -6days..today vmpooler.running.*"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=today"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=today&format=png"
 
   it 'supports multiple targets', () ->
     hubot "graph me vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&format=png"
 
     hubot "graph me -6days vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&from=-6days"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&from=-6days&format=png"
 
     hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&from=-6days&until=-1h"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&from=-6days&until=-1h&format=png"
 
     hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")  +  x.y.z   "
-    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h"
+    assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
