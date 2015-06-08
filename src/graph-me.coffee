@@ -23,7 +23,6 @@
 #   Rick Bradley (rick@rickbradley.com, github.com/rick)
 
 crypto  = require "crypto"
-util    = require "util"
 knox    = require "knox"
 request = require "request"
 
@@ -65,8 +64,6 @@ module.exports = (robot) ->
 
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
-    console.log "in fetchAndUpload..."
-
     request url, { encoding: null }, (err, response, body) ->
       console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers['content-type']}]"
       uploadToS3(msg, body, body.length, response.headers['content-type'])

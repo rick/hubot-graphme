@@ -7,7 +7,6 @@ pkgVersion = pkg.version
 room   = null
 url    = null
 helper = new Helper(Path.join(__dirname, "..", "src", "graph-me.coffee"))
-util    = require "util"
 
 describe "graph-me", () ->
 

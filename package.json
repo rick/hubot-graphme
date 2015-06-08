@@ -27,7 +27,6 @@
 
   "dependencies": {
     "coffee-script": "~1.6",
-    "aws-sdk": "~2.1",
     "knox": "~0",
     "request": "~2"
   },
