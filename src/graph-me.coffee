@@ -22,7 +22,7 @@
 crypto  = require "crypto"
 util    = require "util"
 knox    = require "knox"
-http    = require "http"
+request = require "request"
 
 module.exports = (robot) ->
 
@@ -52,29 +52,35 @@ module.exports = (robot) ->
 
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
+    console.log "in fetchAndUpload..."
+
+    request url, { encoding: null }, (err, response, body) ->
+      console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers['content-type']}]"
+      uploadToS3(body, body.length, response.headers['content-type'])
+
+  uploadToS3 = (content, length, content_type) ->
     client = knox.createClient {
       key    : AWSCredentials["accessKeyId"]
       secret : AWSCredentials["secretAccessKey"],
       bucket : config["bucket"]
     }
 
+    headers = {
+      'Content-Length' : length,
+      'Content-Type'   : content_type,
+      'x-amz-acl'      : 'public-read',
+      "encoding"       : null
+    }
+
     # pick a random filename
     filename = "hubot-graphme/" + crypto.randomBytes(20).toString('hex') + ".png"
 
-    http.get('http://github.com/rick.png', (res) ->
-      msg.reply "Inside #{util.inspect(res)}"
-
-      headers =
-        'Content-Length': res.headers['content-length']
-        'Content-Type': res.headers['content-type']
-
-      client.putStream res, filename, headers, (err, res) ->
-        if !err
-          msg.reply "https://s3.amazonaws.com/#{bucket}/#{filename}"
-        else
-          msg.reply "Error: #{err}"
-    ).on 'error', (e) ->
-      msg.reply "Got an error: #{e}"
+    req = client.put(filename, headers)
+    req.on 'response', (res) ->
+      if (200 == res.statusCode)
+        console.log "Successfully uploaded https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
+        return "https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
+    req.end(content);
 
   timePattern = '(?:[-_:\/+a-zA-Z0-9]+)'
 
@@ -125,9 +131,8 @@ module.exports = (robot) ->
         graphiteURL = "#{url}/render?#{result.join("&")}"
 
         msg.reply graphiteURL
-
-        fetchAndUpload(msg, graphiteURL)
+        msg.reply fetchAndUpload(msg, graphiteURL)
       else
         msg.reply "Type: `help graph` for usage info"
     else
-      msg.reply "Configuration variables are not set: #{notConfigured().join(", ")}."
+      msg.send "Configuration variables are not set: #{notConfigured().join(", ")}."
