@@ -9,6 +9,9 @@
 #   HUBOT_GRAPHITE_S3_BUCKET            - Amazon S3 bucket where graph snapshots will be stored
 #   HUBOT_GRAPHITE_S3_ACCESS_KEY_ID     - Amazon S3 access key ID for snapshot storage
 #   HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY - Amazon S3 secret access key for snapshot storage
+#   HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY - Amazon S3 secret access key for snapshot storage
+#   HUBOT_GRAPHITE_S3_REGION            - Amazon S3 region (default: "us-east-1")
+#   HUBOT_GRAPHITE_S3_IMAGE_PATH        - Subdirectory in which to store S3 snapshots (default: "hubot-graphme")
 #
 # Commands:
 #   hubot graph me vmpooler.running.*                                    - show a graph for a graphite query using a target
@@ -37,11 +40,16 @@ module.exports = (robot) ->
   isConfigured = () ->
     notConfigured().length == 0
 
+  imagePathConfig = () ->
+    return "hubot-graphme" unless process.env['HUBOT_GRAPHITE_S3_IMAGE_PATH']
+    process.env['HUBOT_GRAPHITE_S3_IMAGE_PATH'].replace(/\/+$/, '')
+
   config = {
       bucket          : process.env['HUBOT_GRAPHITE_S3_BUCKET'],
       accessKeyId     : process.env['HUBOT_GRAPHITE_S3_ACCESS_KEY_ID'],
       secretAccessKey : process.env['HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY'],
-      region          : "us-east-1" # TODO make this configurable
+      imagePath       : imagePathConfig
+      region          : process.env['HUBOT_GRAPHITE_S3_REGION'] || "us-east-1"
     }
 
   AWSCredentials = {
@@ -50,15 +58,20 @@ module.exports = (robot) ->
       region          : config["region"]
     }
 
+  # pick a random filename
+  uploadPath = () ->
+    prefix = (config["imagePath"] == '' ? '' : config["imagePath"] + "/")
+    "#{prefix}/#{crypto.randomBytes(20).toString('hex')}.png"
+
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
     console.log "in fetchAndUpload..."
 
     request url, { encoding: null }, (err, response, body) ->
       console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers['content-type']}]"
-      uploadToS3(body, body.length, response.headers['content-type'])
+      uploadToS3(msg, body, body.length, response.headers['content-type'])
 
-  uploadToS3 = (content, length, content_type) ->
+  uploadToS3 = (msg, content, length, content_type) ->
     client = knox.createClient {
       key    : AWSCredentials["accessKeyId"]
       secret : AWSCredentials["secretAccessKey"],
@@ -72,14 +85,12 @@ module.exports = (robot) ->
       "encoding"       : null
     }
 
-    # pick a random filename
-    filename = "hubot-graphme/" + crypto.randomBytes(20).toString('hex') + ".png"
+    filename = uploadPath()
 
     req = client.put(filename, headers)
     req.on 'response', (res) ->
       if (200 == res.statusCode)
-        console.log "Successfully uploaded https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
-        return "https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
+        return msg.reply "https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
     req.end(content);
 
   timePattern = '(?:[-_:\/+a-zA-Z0-9]+)'
@@ -131,7 +142,7 @@ module.exports = (robot) ->
         graphiteURL = "#{url}/render?#{result.join("&")}"
 
         msg.reply graphiteURL
-        msg.reply fetchAndUpload(msg, graphiteURL)
+        fetchAndUpload(msg, graphiteURL)
       else
         msg.reply "Type: `help graph` for usage info"
     else
