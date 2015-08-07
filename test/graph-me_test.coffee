@@ -1,7 +1,7 @@
 Path   = require("path")
-Helper = require('hubot-test-helper')
+Helper = require("hubot-test-helper")
 
-pkg = require Path.join __dirname, "..", 'package.json'
+pkg = require Path.join __dirname, "..", "package.json"
 pkgVersion = pkg.version
 
 room   = null
@@ -22,7 +22,7 @@ describe "graph-me", () ->
 
   # assert that Hubot's next response is the passed `expected` message
   assertHubotResponse = (expected) ->
-    assert.deepEqual room.messages[0], ['hubot', "@otheruser #{expected}"]
+    assert.deepEqual room.messages[0], ["hubot", "@otheruser #{expected}"]
 
   # skip past a line of Hubot's response
   skipHubotResponse = () ->
@@ -39,52 +39,52 @@ describe "graph-me", () ->
 
   # -----------------------------------------------------
 
-  it 'fails if HUBOT_GRAPHITE_URL is not set', () ->
+  it "fails if HUBOT_GRAPHITE_URL is not set", () ->
     delete process.env.HUBOT_GRAPHITE_URL
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_URL/
 
-  it 'fails if HUBOT_GRAPHITE_S3_BUCKET is not set', () ->
+  it "fails if HUBOT_GRAPHITE_S3_BUCKET is not set", () ->
     delete process.env.HUBOT_GRAPHITE_S3_BUCKET
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_BUCKET/
 
-  it 'fails if HUBOT_GRAPHITE_S3_ACCESS_KEY_ID is not set', () ->
+  it "fails if HUBOT_GRAPHITE_S3_ACCESS_KEY_ID is not set", () ->
     delete process.env.HUBOT_GRAPHITE_S3_ACCESS_KEY_ID
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_ACCESS_KEY_ID/
 
-  it 'fails if HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY is not set', () ->
+  it "fails if HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY is not set", () ->
     delete process.env.HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY/
 
-  it 'eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL', () ->
-    process.env["HUBOT_GRAPHITE_URL"] = url + '///'
+  it "eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL", () ->
+    process.env["HUBOT_GRAPHITE_URL"] = url + "///"
     hubot "graph me vmpooler.running.debian-6-x386"
     assertHubotResponse "#{url}/render?target=vmpooler.running.debian-6-x386&format=png"
 
-  it 'responds to requests to `/graph` with an offer of help', () ->
+  it "responds to requests to `/graph` with an offer of help", () ->
     hubot "graph"
     assertHubotResponse "Type: `help graph` for usage info"
 
-  it 'responds to requests to `/graph me` with an offer of help', () ->
+  it "responds to requests to `/graph me` with an offer of help", () ->
     hubot "graph me"
     assertHubotResponse "Type: `help graph` for usage info"
 
-  it 'when given a basic target, responds with a target URL', () ->
-    hubot 'graph me vmpooler.running.*'
+  it "when given a basic target, responds with a target URL", () ->
+    hubot "graph me vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&format=png"
 
-  it 'when given a from time and a target, responds with a URL with from time', () ->
-    hubot 'graph me -1h vmpooler.running.*'
+  it "when given a from time and a target, responds with a URL with from time", () ->
+    hubot "graph me -1h vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h&format=png"
 
-  it 'converts -1m to -1min in from time', () ->
+  it "converts -1m to -1min in from time", () ->
     hubot "graph me -1m vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min&format=png"
 
-  it 'supports absolute from times', () ->
+  it "supports absolute from times", () ->
     hubot "graph me today vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today&format=png"
 
@@ -94,7 +94,7 @@ describe "graph-me", () ->
     hubot "graph me now-5days vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=now-5days&format=png"
 
-  it 'supports time ranges', () ->
+  it "supports time ranges", () ->
     hubot "graph me -6days..-1h vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=-1h&format=png"
 
@@ -104,7 +104,7 @@ describe "graph-me", () ->
     hubot "graph me -6days..today vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=today&format=png"
 
-  it 'supports multiple targets', () ->
+  it "supports multiple targets", () ->
     hubot "graph me vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&format=png"
 
@@ -117,7 +117,7 @@ describe "graph-me", () ->
     hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")  +  x.y.z   "
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
   #
-  # it 'uploads an image snapshot to S3', () ->
+  # it "uploads an image snapshot to S3", () ->
   #   hubot "graph me whatever"
   #   skipHubotResponse()
   #   assertHubotResponse "foo"
