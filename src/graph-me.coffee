@@ -64,7 +64,8 @@ module.exports = (robot) ->
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
     request url, { encoding: null }, (err, response, body) ->
-      console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers["content-type"]}]"
+      if typeof body isnt "undefined" # hacky
+        console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers["content-type"]}]"
       uploadToS3(msg, body, body.length, response.headers["content-type"])
 
   uploadToS3 = (msg, content, length, content_type) ->

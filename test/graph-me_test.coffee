@@ -116,8 +116,8 @@ describe "graph-me", () ->
 
     hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")  +  x.y.z   "
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
-
-  it 'uploads an image snapshot to S3', () ->
-    hubot "graph me whatever"
-    skipHubotResponse()
-    assertHubotResponse "foo"
+  #
+  # it 'uploads an image snapshot to S3', () ->
+  #   hubot "graph me whatever"
+  #   skipHubotResponse()
+  #   assertHubotResponse "foo"
