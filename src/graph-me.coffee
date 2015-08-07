@@ -29,25 +29,25 @@ module.exports = (robot) ->
 
   notConfigured = () ->
     result = []
-    result.push "HUBOT_GRAPHITE_URL" unless process.env['HUBOT_GRAPHITE_URL']
-    result.push "HUBOT_GRAPHITE_S3_BUCKET" unless process.env['HUBOT_GRAPHITE_S3_BUCKET']
-    result.push "HUBOT_GRAPHITE_S3_ACCESS_KEY_ID" unless process.env['HUBOT_GRAPHITE_S3_ACCESS_KEY_ID']
-    result.push "HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY" unless process.env['HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY']
+    result.push "HUBOT_GRAPHITE_URL" unless process.env["HUBOT_GRAPHITE_URL"]
+    result.push "HUBOT_GRAPHITE_S3_BUCKET" unless process.env["HUBOT_GRAPHITE_S3_BUCKET"]
+    result.push "HUBOT_GRAPHITE_S3_ACCESS_KEY_ID" unless process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"]
+    result.push "HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY" unless process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"]
     result
 
   isConfigured = () ->
     notConfigured().length == 0
 
   imagePathConfig = () ->
-    return "hubot-graphme" unless process.env['HUBOT_GRAPHITE_S3_IMAGE_PATH']
-    process.env['HUBOT_GRAPHITE_S3_IMAGE_PATH'].replace(/\/+$/, '')
+    return "hubot-graphme" unless process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"]
+    process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"].replace(/\/+$/, "")
 
   config = {
-      bucket          : process.env['HUBOT_GRAPHITE_S3_BUCKET'],
-      accessKeyId     : process.env['HUBOT_GRAPHITE_S3_ACCESS_KEY_ID'],
-      secretAccessKey : process.env['HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY'],
+      bucket          : process.env["HUBOT_GRAPHITE_S3_BUCKET"],
+      accessKeyId     : process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"],
+      secretAccessKey : process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"],
       imagePath       : imagePathConfig
-      region          : process.env['HUBOT_GRAPHITE_S3_REGION'] || "us-east-1"
+      region          : process.env["HUBOT_GRAPHITE_S3_REGION"] || "us-east-1"
     }
 
   AWSCredentials = {
@@ -58,14 +58,14 @@ module.exports = (robot) ->
 
   # pick a random filename
   uploadPath = () ->
-    prefix = (config["imagePath"] == '' ? '' : config["imagePath"] + "/")
-    "#{prefix}/#{crypto.randomBytes(20).toString('hex')}.png"
+    prefix = (config["imagePath"] == "" ? "" : config["imagePath"] + "/")
+    "#{prefix}/#{crypto.randomBytes(20).toString("hex")}.png"
 
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
     request url, { encoding: null }, (err, response, body) ->
-      console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers['content-type']}]"
-      uploadToS3(msg, body, body.length, response.headers['content-type'])
+      console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers["content-type"]}]"
+      uploadToS3(msg, body, body.length, response.headers["content-type"])
 
   uploadToS3 = (msg, content, length, content_type) ->
     client = knox.createClient {
@@ -75,21 +75,21 @@ module.exports = (robot) ->
     }
 
     headers = {
-      'Content-Length' : length,
-      'Content-Type'   : content_type,
-      'x-amz-acl'      : 'public-read',
+      "Content-Length" : length,
+      "Content-Type"   : content_type,
+      "x-amz-acl"      : "public-read",
       "encoding"       : null
     }
 
     filename = uploadPath()
 
     req = client.put(filename, headers)
-    req.on 'response', (res) ->
+    req.on "response", (res) ->
       if (200 == res.statusCode)
         return msg.reply "https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
     req.end(content);
 
-  timePattern = '(?:[-_:\/+a-zA-Z0-9]+)'
+  timePattern = "(?:[-_:\/+a-zA-Z0-9]+)"
 
   robot.respond ///
     graph(?:\s+me)?                       # graph me
@@ -115,7 +115,7 @@ module.exports = (robot) ->
   ///, (msg) ->
 
     if isConfigured()
-      url = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, '') # drop trailing '/'s
+      url = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, "") # drop trailing "/"s
       from    = msg.match[1]
       through = msg.match[2]
       targets  = msg.match[3]
