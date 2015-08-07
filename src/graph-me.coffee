@@ -9,7 +9,6 @@
 #   HUBOT_GRAPHITE_S3_BUCKET            - Amazon S3 bucket where graph snapshots will be stored
 #   HUBOT_GRAPHITE_S3_ACCESS_KEY_ID     - Amazon S3 access key ID for snapshot storage
 #   HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY - Amazon S3 secret access key for snapshot storage
-#   HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY - Amazon S3 secret access key for snapshot storage
 #   HUBOT_GRAPHITE_S3_REGION            - Amazon S3 region (default: "us-east-1")
 #   HUBOT_GRAPHITE_S3_IMAGE_PATH        - Subdirectory in which to store S3 snapshots (default: "hubot-graphme")
 #
