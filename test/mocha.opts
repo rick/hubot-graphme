@@ -1,5 +1,5 @@
---compilers coffee:coffee-script/register
+--compilers coffee:coffee-script
 --reporter dot
---require coffee-script/register
+--require coffee-script
 --require test/test_helper.coffee
 --colors

@@ -26,15 +26,14 @@
   },
 
   "dependencies": {
-    "coffee-script": "~1.6",
+    "coffee-script": "~1.6.3",
     "knox": "~0",
     "request": "~2"
   },
 
   "devDependencies": {
-    "chai":          ">=1.9.2 <3",
-    "mocha":         "~2.2.5",
-    "coffee-script": ">=1.6.3",
+    "chai": ">=1.9.2 <3",
+    "mocha": "~2.2.5",
     "hubot-test-helper": "0.0.2"
   },
 
