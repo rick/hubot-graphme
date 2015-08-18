@@ -34,6 +34,7 @@
   "devDependencies": {
     "chai": ">=1.9.2 <3",
     "mocha": "~2.2.5",
+    "hubot": "< 2.14.0",
     "hubot-test-helper": "0.0.2"
   },
 
