@@ -35,7 +35,7 @@ describe "graph-me", () ->
     process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucket"
     process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "access_key_id"
     process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"] = "secret_access_key"
-    room = helper.createRoom()
+    room = helper.createRoom(httpd: false)
 
   # -----------------------------------------------------
 
