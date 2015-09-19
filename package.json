@@ -34,7 +34,8 @@
   "devDependencies": {
     "chai": ">=1.9.2 <3",
     "mocha": "~2.2.5",
-    "hubot-test-helper": "0.0.7"
+    "hubot-test-helper": "0.0.7",
+    "sinon": "~1"
   },
 
   "main": "index.coffee"

@@ -30,7 +30,6 @@ describe "graph-me", () ->
 
   beforeEach () ->
     url = "https://graphite.example.com"
-    url = "https://graphite.ops.puppetlabs.net"
     process.env["HUBOT_GRAPHITE_URL"] = url + "/"
     process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucket"
     process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "access_key_id"
@@ -116,7 +115,14 @@ describe "graph-me", () ->
 
     hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")  +  x.y.z   "
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
-  #
+
+  it "stores uploaded images in hubot-graphme/ by default", () ->
+    # TODO: get back the stored image
+
+
+  it "allows overriding image storage folder", () ->
+    # TODO: get back the stored image
+
   # it "uploads an image snapshot to S3", () ->
   #   hubot "graph me whatever"
   #   skipHubotResponse()
