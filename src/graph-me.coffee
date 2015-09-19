@@ -66,7 +66,7 @@ module.exports = (robot) ->
     request url, { encoding: null }, (err, response, body) ->
       if typeof body isnt "undefined" # hacky
         console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers["content-type"]}]"
-      uploadToS3(msg, body, body.length, response.headers["content-type"])
+        uploadToS3(msg, body, body.length, response.headers["content-type"])
 
   uploadToS3 = (msg, content, length, content_type) ->
     client = knox.createClient {
