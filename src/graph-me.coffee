@@ -38,10 +38,6 @@ module.exports = (robot) ->
   isConfigured = () ->
     notConfigured().length == 0
 
-  imagePathConfig = () ->
-    return "hubot-graphme" unless process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"]
-    process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"].replace(/\/+$/, "")
-
   config = {
       bucket          : process.env["HUBOT_GRAPHITE_S3_BUCKET"],
       accessKeyId     : process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"],
@@ -56,10 +52,19 @@ module.exports = (robot) ->
       region          : config["region"]
     }
 
+  imagePathConfig = () ->
+    return "hubot-graphme" unless process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"]
+    process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"].replace(/\/+$/, "")
+
+  uploadFolder = () ->
+    (config["imagePath"] == "" ? "hubot-graphme" : config["imagePath"]) + "/"
+
   # pick a random filename
   uploadPath = () ->
-    prefix = (config["imagePath"] == "" ? "" : config["imagePath"] + "/")
-    "#{prefix}/#{crypto.randomBytes(20).toString("hex")}.png"
+    "#{uploadFolder}/#{crypto.randomBytes(20).toString("hex")}.png"
+
+  imgURL = (filename) ->
+    "https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
 
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
@@ -67,28 +72,38 @@ module.exports = (robot) ->
       if typeof body isnt "undefined" # hacky
         console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers["content-type"]}]"
         uploadToS3(msg, body, body.length, response.headers["content-type"])
+      else
+        # error handling
 
-  uploadToS3 = (msg, content, length, content_type) ->
-    client = knox.createClient {
-      key    : AWSCredentials["accessKeyId"]
+  uploadClient = () ->
+    knox.createClient {
+      key    : AWSCredentials["accessKeyId"],
       secret : AWSCredentials["secretAccessKey"],
       bucket : config["bucket"]
     }
 
+  buildUploadRequest = (length, content_type) ->
+    client = uploadClient()
+    filename = uploadPath()
     headers = {
       "Content-Length" : length,
       "Content-Type"   : content_type,
       "x-amz-acl"      : "public-read",
       "encoding"       : null
     }
+    client.put(filename, headers)
 
-    filename = uploadPath()
-
-    req = client.put(filename, headers)
+  uploadToS3 = (msg, content, length, content_type) ->
+    req = buildUploadRequest(length, content_type)
     req.on "response", (res) ->
       if (200 == res.statusCode)
-        return msg.reply "https://s3.amazonaws.com/#{config["bucket"]}/#{filename}"
+        return msg.reply imgURL(filename)
     req.end(content);
+
+
+  #
+  #  build robot grammar regex
+  #
 
   timePattern = "(?:[-_:\/+a-zA-Z0-9]+)"
 
