@@ -39,8 +39,14 @@ describe "graph-me", () ->
 
     # make S3 upload requests generate HTTP 200 responses
     nock.disableNetConnect()
-    nock("https://graphite.example.com").get("/render").query(true).times(10).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').times(100).reply(200, "OK")
+
+  afterEach () ->
+    # wrap http mocking cleanup in a delay timer to allow all request/response
+    # cycles to finish
+    done = () ->
+      nock.cleanAll()
+    setTimeout done, 100
 
   # -----------------------------------------------------
 
@@ -65,6 +71,8 @@ describe "graph-me", () ->
     assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY/
 
   it "eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL", () ->
+    nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+
     process.env["HUBOT_GRAPHITE_URL"] = url + "///"
     hubot "graph me vmpooler.running.debian-6-x386"
     assertHubotResponse "#{url}/render?target=vmpooler.running.debian-6-x386&format=png"
@@ -78,18 +86,26 @@ describe "graph-me", () ->
     assertHubotResponse "Type: `help graph` for usage info"
 
   it "when given a basic target, responds with a target URL", () ->
+    nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+
     hubot "graph me vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&format=png"
 
   it "when given a from time and a target, responds with a URL with from time", () ->
+    nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+
     hubot "graph me -1h vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h&format=png"
 
   it "converts -1m to -1min in from time", () ->
+    nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+
     hubot "graph me -1m vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min&format=png"
 
   it "supports absolute from times", () ->
+    nock("https://graphite.example.com").get("/render").query(true).times(3).reply(200, "OK")
+
     hubot "graph me today vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=today&format=png"
 
@@ -100,6 +116,8 @@ describe "graph-me", () ->
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=now-5days&format=png"
 
   it "supports time ranges", () ->
+    nock("https://graphite.example.com").get("/render").query(true).times(3).reply(200, "OK")
+
     hubot "graph me -6days..-1h vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=-1h&format=png"
 
@@ -110,6 +128,8 @@ describe "graph-me", () ->
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=today&format=png"
 
   it "supports multiple targets", () ->
+    nock("https://graphite.example.com").get("/render").query(true).times(4).reply(200, "OK")
+
     hubot "graph me vmpooler.running.* + summarize(foo.bar.baz,\"1day\")"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&format=png"
 
