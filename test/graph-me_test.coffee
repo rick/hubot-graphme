@@ -45,12 +45,10 @@ describe "graph-me", () ->
     # make S3 upload requests generate HTTP 200 responses
     nock.disableNetConnect()
 
-  afterEach () ->
-    # wrap http mocking cleanup in a delay timer to allow all request/response
-    # cycles to finish
-    done = () ->
-      nock.cleanAll()
-    setTimeout done, 100
+  afterEach (done) ->
+    delete process.env.HUBOT_GRAPHITE_S3_IMAGE_PATH
+    nock.cleanAll()
+    setTimeout(done, 20)
 
   # -----------------------------------------------------
 
@@ -74,13 +72,14 @@ describe "graph-me", () ->
     hubot "graph whatever"
     assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY/
 
-  it "eliminates any trailing "/" characters from HUBOT_GRAPHITE_URL", () ->
+  it "eliminates any trailing '/' characters from HUBOT_GRAPHITE_URL", (done) ->
     nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').reply(200, "OK")
 
     process.env["HUBOT_GRAPHITE_URL"] = url + "///"
     hubot "graph me vmpooler.running.debian-6-x386"
     assertHubotResponse "#{url}/render?target=vmpooler.running.debian-6-x386&format=png"
+    setTimeout(done, 20)
 
   it "responds to requests to `/graph` with an offer of help", () ->
     hubot "graph"
@@ -90,28 +89,31 @@ describe "graph-me", () ->
     hubot "graph me"
     assertHubotResponse "Type: `help graph` for usage info"
 
-  it "when given a basic target, responds with a target URL", () ->
+  it "when given a basic target, responds with a target URL", (done) ->
     nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').reply(200, "OK")
 
     hubot "graph me vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&format=png"
+    setTimeout(done, 20)
 
-  it "when given a from time and a target, responds with a URL with from time", () ->
+  it "when given a from time and a target, responds with a URL with from time", (done) ->
     nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').reply(200, "OK")
 
     hubot "graph me -1h vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1h&format=png"
+    setTimeout(done, 20)
 
-  it "converts -1m to -1min in from time", () ->
+  it "converts -1m to -1min in from time", (done) ->
     nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').reply(200, "OK")
 
     hubot "graph me -1m vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-1min&format=png"
+    setTimeout(done, 20)
 
-  it "supports absolute from times", () ->
+  it "supports absolute from times", (done) ->
     nock("https://graphite.example.com").get("/render").query(true).times(3).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').times(3).reply(200, "OK")
 
@@ -123,8 +125,9 @@ describe "graph-me", () ->
 
     hubot "graph me now-5days vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=now-5days&format=png"
+    setTimeout(done, 20)
 
-  it "supports time ranges", () ->
+  it "supports time ranges", (done) ->
     nock("https://graphite.example.com").get("/render").query(true).times(3).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').times(3).reply(200, "OK")
 
@@ -136,8 +139,9 @@ describe "graph-me", () ->
 
     hubot "graph me -6days..today vmpooler.running.*"
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&from=-6days&until=today&format=png"
+    setTimeout(done, 20)
 
-  it "supports multiple targets", () ->
+  it "supports multiple targets", (done) ->
     nock("https://graphite.example.com").get("/render").query(true).times(4).reply(200, "OK")
     nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').times(4).reply(200, "OK")
 
@@ -152,21 +156,24 @@ describe "graph-me", () ->
 
     hubot "graph me -6days..-1h vmpooler.running.* + summarize(foo.bar.baz,\"1day\")  +  x.y.z   "
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
+    setTimeout(done, 20)
 
-  # it "stores uploaded images in hubot-graphme/ by default", () ->
-  #   nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
-  #   expectation = nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').reply(200, "OK")
-  #
-  #   hubot "graph me -1h vmpooler.running.*"
-  #   expectation.done()
-  #
-  # it "allows overriding image storage folder", () ->
-  #   nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
-  #   expectation = nock("https://bucket.s3.amazonaws.com").filteringPath(/secret-path\/.*/, 'secret-path').put('/secret-path').reply(200, "OK")
-  #
-  #   # process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"] = 'secret-path'
-  #   hubot "graph me -1h vmpooler.running.*"
-  #   expectation.done()
+  it "stores uploaded images in hubot-graphme/ by default", (done) ->
+    nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+    expectation = nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').reply(200, "OK")
+
+    hubot "graph me -1h vmpooler.running.*"
+    setTimeout(expectation.done, 20)
+    setTimeout(done, 20)
+
+  it "allows overriding image storage folder", (done) ->
+    nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+    expectation = nock("https://bucket.s3.amazonaws.com").filteringPath(/secret-path\/.*/, 'secret-path').put('/secret-path').reply(200, "OK")
+
+    process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"] = 'secret-path'
+    hubot "graph me -1h vmpooler.running.*"
+    setTimeout(expectation.done, 20)
+    setTimeout(done, 20)
 
   # it "uploads an image snapshot to S3", () ->
   #   hubot "graph me whatever"
