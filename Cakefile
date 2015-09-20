@@ -2,10 +2,8 @@
 
 {exec} = require "child_process"
 
-REPORTER = "min"
-
 task "test", "run tests", ->
-  exec "NODE_ENV=test ./node_modules/.bin/mocha --full-trace", (err, output) ->
+  exec "NODE_ENV=test ./node_modules/.bin/mocha --full-trace --reporter list", (err, output) ->
     console.log output
     if err
       console.log err
