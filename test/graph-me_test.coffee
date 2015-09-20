@@ -1,7 +1,11 @@
-Path   = require("path")
-Helper = require("hubot-test-helper")
-nock   = require("nock")
 
+chai   = require("chai")
+chai.config.includeStack = true
+assert = chai.assert
+nock   = require("nock")
+Helper = require("hubot-test-helper")
+
+Path   = require("path")
 pkg = require Path.join __dirname, "..", "package.json"
 pkgVersion = pkg.version
 
@@ -35,6 +39,7 @@ describe "graph-me", () ->
     process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucket"
     process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "access_key_id"
     process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"] = "secret_access_key"
+
     room = helper.createRoom(httpd: false)
 
     # make S3 upload requests generate HTTP 200 responses
@@ -149,12 +154,20 @@ describe "graph-me", () ->
     assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
 
   # it "stores uploaded images in hubot-graphme/ by default", () ->
-  #   # TODO: get back the stored image
+  #   nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+  #   expectation = nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, 'hubot-graphme').put('/hubot-graphme').reply(200, "OK")
   #
+  #   hubot "graph me -1h vmpooler.running.*"
+  #   expectation.done()
   #
   # it "allows overriding image storage folder", () ->
-  #   # TODO: get back the stored image
+  #   nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+  #   expectation = nock("https://bucket.s3.amazonaws.com").filteringPath(/secret-path\/.*/, 'secret-path').put('/secret-path').reply(200, "OK")
   #
+  #   # process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"] = 'secret-path'
+  #   hubot "graph me -1h vmpooler.running.*"
+  #   expectation.done()
+
   # it "uploads an image snapshot to S3", () ->
   #   hubot "graph me whatever"
   #   skipHubotResponse()

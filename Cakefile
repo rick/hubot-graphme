@@ -5,6 +5,8 @@
 REPORTER = "min"
 
 task "test", "run tests", ->
-  exec "NODE_ENV=test ./node_modules/.bin/mocha", (err, output) ->
+  exec "NODE_ENV=test ./node_modules/.bin/mocha --full-trace", (err, output) ->
     console.log output
-    process.exit 1 if err
+    if err
+      console.log err
+      process.exit 1
