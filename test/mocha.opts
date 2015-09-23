@@ -1,5 +1,6 @@
 --compilers coffee:coffee-script
---reporter dot
+--reporter list
 --require coffee-script
 --require test/test_helper.coffee
 --colors
+--full-trace
