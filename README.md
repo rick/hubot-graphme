@@ -52,3 +52,11 @@ hubot>> http://graphite.example.com/render?target=vmpooler.usage.avg&from=-1day&
  - `hubot graph me -1h vmpooler.running.*` - show a graphite graph with a target and a from time
  - `hubot graph me -6h..-1h vmpooler.running.*` - show a graphite graph with a target and a time range
  - `hubot graph me -6h..-1h foo.bar.baz + summarize(bar.baz.foo,"1day")` - show a graphite graph with multiple targets
+
+
+## Running tests
+
+```
+% npm install
+% npm test
+```
