@@ -38,16 +38,18 @@ describe "graph-me", () ->
     process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucket"
     process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "access_key_id"
     process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"] = "secret_access_key"
-
     room = helper.createRoom(httpd: false)
 
-    # make S3 upload requests generate HTTP 200 responses
+    # forbid all unspecified HTTP requests
     nock.disableNetConnect()
 
   afterEach (done) ->
-    delete process.env.HUBOT_GRAPHITE_S3_IMAGE_PATH
     nock.cleanAll()
     setTimeout(done, 20)
+
+  # fake image data used in tests
+  image_data = () ->
+    "This is image data"
 
   # -----------------------------------------------------
 
@@ -86,10 +88,13 @@ describe "graph-me", () ->
   describe "when handling /graph requests", () ->
 
     beforeEach () ->
-      nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+      # stub requests to graphite
+      nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data())
+
+      # stub requests to S3
       nock("https://bucket.s3.amazonaws.com")
         .filteringPath(/hubot-graphme\/.*/, "hubot-graphme")
-        .put("/hubot-graphme")
+        .put("/hubot-graphme", image_data())
         .reply(200, "OK")
 
     it "eliminates any trailing '/' characters from HUBOT_GRAPHITE_URL", (done) ->
@@ -164,11 +169,16 @@ describe "graph-me", () ->
       setTimeout(done, 20)
 
   describe "when uploading images to S3", () ->
+
+    afterEach () ->
+      # reset this ENV variable, which is manipulated here
+      delete process.env.HUBOT_GRAPHITE_S3_IMAGE_PATH
+
     it "stores uploaded images in hubot-graphme/ by default", (done) ->
-      nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+      nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data())
       expectation = nock("https://bucket.s3.amazonaws.com")
         .filteringPath(/hubot-graphme\/.*/, "hubot-graphme")
-        .put("/hubot-graphme")
+        .put("/hubot-graphme", image_data())
         .reply(200, "OK")
 
       hubot "graph me -1h vmpooler.running.*"
@@ -176,10 +186,10 @@ describe "graph-me", () ->
       setTimeout(done, 20)
 
     it "allows overriding image storage folder", (done) ->
-      nock("https://graphite.example.com").get("/render").query(true).reply(200, "OK")
+      nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data())
       expectation = nock("https://bucket.s3.amazonaws.com")
         .filteringPath(/secret-path\/.*/, "secret-path")
-        .put("/secret-path")
+        .put("/secret-path", image_data())
         .reply(200, "OK")
 
       process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"] = "secret-path"
@@ -188,10 +198,9 @@ describe "graph-me", () ->
       setTimeout(done, 20)
 
     it "uploads an image snapshot to S3", (done) ->
-      image_data = "This is image data"
-      nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data)
+      nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data())
       expectation = nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, "hubot-graphme")
-        .put("/hubot-graphme", image_data)
+        .put("/hubot-graphme", image_data())
         .reply(200, "OK")
 
       hubot "graph me -1h vmpooler.running.*"
