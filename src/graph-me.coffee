@@ -120,8 +120,11 @@ module.exports = (robot) ->
         msg.reply imgURL(filename)
         return true
       else
-        msg.reply "Image snapshot upload error: \##{res.statusCode} - #{res.message}"
+        msg.reply "Image snapshot upload error: \##{res.statusCode} - #{res.statusMessage}"
         return false
+    req.on "error", (err) ->
+      msg.reply "Image snapshot upload error: \##{err.statusCode} - #{err.statusMessage}"
+      return false
     req.end(content)
 
   #

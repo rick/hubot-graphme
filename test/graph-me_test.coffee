@@ -220,3 +220,17 @@ describe "graph-me", () ->
       hubot "graph me -1h vmpooler.running.*"
       setTimeout(expectation.done, 20)
       setTimeout(done, 20)
+
+    # TODO: for some reason I can't queue up the next line of hubot output for
+    #       use in the following test, so leaving it out for now.
+
+    # it "specifies the correct full S3 download URL", (done) ->
+    #   nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data())
+    #   nock("https://bucket.s3.amazonaws.com").filteringPath(/hubot-graphme\/.*/, "hubot-graphme")
+    #     .put("/hubot-graphme", image_data())
+    #     .reply(200, "OK")
+    #
+    #   hubot "graph me -1h vmpooler.running.*"
+    #   skipHubotResponse
+    #   assert.match hubotResponse, /https:\/\/bucket.s3.amazonaws.com\/hubot-graphme/\d{8}/[a-f0-9]+\.png"
+    #   setTimeout(done, 20)
