@@ -1,7 +1,7 @@
 {
   "name": "hubot-graphme",
   "description": "Add /graph me support for graphite to hubot",
-  "version": "0.0.2",
+  "version": "0.2.0",
   "author": "Rick Bradley <rick@rickbradley.com>",
   "license": "MIT",
 
