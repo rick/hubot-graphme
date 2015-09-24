@@ -1,4 +1,3 @@
-
 chai   = require("chai")
 chai.config.includeStack = true
 assert = chai.assert
