@@ -168,6 +168,20 @@ describe "graph-me", () ->
       assertHubotResponse "#{url}/render?target=vmpooler.running.*&target=summarize(foo.bar.baz%2C%221day%22)&target=x.y.z&from=-6days&until=-1h&format=png"
       setTimeout(done, 20)
 
+  describe "file paths", () ->
+    it "stores images in timestamped S3 subdirectories", (done) ->
+      today = (new Date).toISOString().replace(/[^\d]/g, '')[..7] # e.g., 20150923
+
+      nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data())
+      expectation = nock("https://bucket.s3.amazonaws.com")
+        .filteringPath(/[a-f0-9]+\.png$/, "")
+        .put("/hubot-graphme/#{today}/", image_data())
+        .reply(200, "OK")
+
+      hubot "graph me -1h vmpooler.running.*"
+      setTimeout(expectation.done, 20)
+      setTimeout(done, 20)
+
   describe "when uploading images to S3", () ->
 
     afterEach () ->

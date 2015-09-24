@@ -60,8 +60,13 @@ module.exports = (robot) ->
   randomFilename = () ->
     "#{crypto.randomBytes(20).toString("hex")}.png"
 
+  timestamp = () ->
+    (new Date).toISOString().replace(/[^\d]/g, '')[..7] # e.g., 20150923
+
   uploadPath = (filename) ->
-    "#{uploadFolder()}/#{filename}"
+    result = "#{uploadFolder()}/#{timestamp()}/#{filename}"
+    console.log "path #{result}"
+    result
 
   imgURL = (filename) ->
     "https://s3.amazonaws.com/#{config["bucket"]}/#{uploadPath(filename)}"
