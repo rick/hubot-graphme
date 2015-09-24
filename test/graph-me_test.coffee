@@ -63,24 +63,24 @@ describe "graph-me", () ->
       hubot "graph me"
       assertHubotResponse "Type: `help graph` for usage info"
 
-  describe "configuration checks", () ->
+  describe "when checking configuration", () ->
 
-    it "fail if HUBOT_GRAPHITE_URL is not set", () ->
+    it "fails if HUBOT_GRAPHITE_URL is not set", () ->
       delete process.env.HUBOT_GRAPHITE_URL
       hubot "graph whatever"
       assert.match hubotResponse(), /HUBOT_GRAPHITE_URL/
 
-    it "fail if HUBOT_GRAPHITE_S3_BUCKET is not set", () ->
+    it "fails if HUBOT_GRAPHITE_S3_BUCKET is not set", () ->
       delete process.env.HUBOT_GRAPHITE_S3_BUCKET
       hubot "graph whatever"
       assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_BUCKET/
 
-    it "fail if HUBOT_GRAPHITE_S3_ACCESS_KEY_ID is not set", () ->
+    it "fails if HUBOT_GRAPHITE_S3_ACCESS_KEY_ID is not set", () ->
       delete process.env.HUBOT_GRAPHITE_S3_ACCESS_KEY_ID
       hubot "graph whatever"
       assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_ACCESS_KEY_ID/
 
-    it "fail if HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY is not set", () ->
+    it "fails if HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY is not set", () ->
       delete process.env.HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY
       hubot "graph whatever"
       assert.match hubotResponse(), /HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY/
