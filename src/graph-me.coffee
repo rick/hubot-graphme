@@ -38,6 +38,24 @@ module.exports = (robot) ->
   isConfigured = () ->
     notConfigured().length == 0
 
+  buildQuery = (from, through, targets) ->
+    return false unless targets
+
+    result = []
+    targets.split(/\s+\+\s+/).map (target) ->
+      result.push "target=#{encodeURIComponent(target)}"
+
+    if from?
+      from += "in" if from.match /\d+m$/ # -1m -> -1min
+      result.push "from=#{encodeURIComponent(from)}"
+
+      if through?
+        through += "in" if through.match /\d+m$/ # -1m -> -1min
+        result.push "until=#{encodeURIComponent(through)}"
+
+    result.push "format=png"
+    result
+
   uploadFolder = () ->
     return "hubot-graphme" unless process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"]
     process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"].replace(/\/+$/, "")
@@ -64,21 +82,19 @@ module.exports = (robot) ->
     (new Date).toISOString().replace(/[^\d]/g, '')[..7] # e.g., 20150923
 
   uploadPath = (filename) ->
-    result = "#{uploadFolder()}/#{timestamp()}/#{filename}"
-    console.log "path #{result}"
-    result
+    "#{uploadFolder()}/#{timestamp()}/#{filename}"
 
   imgURL = (filename) ->
-    "https://s3.amazonaws.com/#{config["bucket"]}/#{uploadPath(filename)}"
+    "https://#{config["bucket"]}.s3.amazonaws.com/#{uploadPath(filename)}"
 
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
+    msg.reply url
     request url, { encoding: null }, (err, response, body) ->
       if typeof body isnt "undefined" # hacky
-        console.log "Uploading file: #{body.length} bytes, content-type[#{response.headers["content-type"]}]"
         uploadToS3(msg, body, body.length, response.headers["content-type"])
       else
-        console.log("error: #{err}, response: #{response}")
+        msg.reply "Graphite request error: #{err}, response: #{response}"
 
   uploadClient = () ->
     knox.createClient {
@@ -101,8 +117,12 @@ module.exports = (robot) ->
     req = buildUploadRequest(filename, length, content_type)
     req.on "response", (res) ->
       if (200 == res.statusCode)
-        return msg.reply imgURL(filename)
-    req.end(content);
+        msg.reply imgURL(filename)
+        return true
+      else
+        msg.reply "Image snapshot upload error: \##{res.statusCode} - #{res.message}"
+        return false
+    req.end(content)
 
   #
   #  build robot grammar regex
@@ -134,30 +154,13 @@ module.exports = (robot) ->
   ///, (msg) ->
 
     if isConfigured()
-      url = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, "") # drop trailing "/"s
+      url     = process.env["HUBOT_GRAPHITE_URL"].replace(/\/+$/, "") # drop trailing "/"s
       from    = msg.match[1]
       through = msg.match[2]
-      targets  = msg.match[3]
+      targets = msg.match[3]
 
-      result = []
-
-      if targets
-        targets.split(/\s+\+\s+/).map (target) ->
-          result.push "target=#{encodeURIComponent(target)}"
-
-        if from?
-          from += "in" if from.match /\d+m$/ # -1m -> -1min
-          result.push "from=#{encodeURIComponent(from)}"
-
-          if through?
-            through += "in" if through.match /\d+m$/ # -1m -> -1min
-            result.push "until=#{encodeURIComponent(through)}"
-
-        result.push "format=png"
-        graphiteURL = "#{url}/render?#{result.join("&")}"
-
-        msg.reply graphiteURL
-        fetchAndUpload(msg, graphiteURL)
+      if query = buildQuery(from, through, targets)
+        fetchAndUpload(msg, "#{url}/render?#{query.join("&")}")
       else
         msg.reply "Type: `help graph` for usage info"
     else
