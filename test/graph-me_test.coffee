@@ -34,6 +34,7 @@ describe "graph-me", () ->
 
   beforeEach () ->
     url = "https://graphite.example.com"
+    process.env["HUBOT_GRAPHITE_SNAPSHOT"] = "true"
     process.env["HUBOT_GRAPHITE_URL"] = url + "/"
     process.env["HUBOT_GRAPHITE_S3_BUCKET"] = "bucket"
     process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"] = "access_key_id"
@@ -88,14 +89,14 @@ describe "graph-me", () ->
   describe "when handling /graph requests", () ->
 
     beforeEach () ->
+      # disable S3 snapshotting for these tests
+      delete process.env.HUBOT_GRAPHITE_SNAPSHOT
+
       # stub requests to graphite
       nock("https://graphite.example.com").get("/render").query(true).reply(200, image_data())
 
-      # stub requests to S3
-      nock("https://bucket.s3.amazonaws.com")
-        .filteringPath(/hubot-graphme\/.*/, "hubot-graphme")
-        .put("/hubot-graphme", image_data())
-        .reply(200, "OK")
+    it "has snapshotting turned off", () ->
+      assert.equal undefined, process.env["HUBOT_GRAPHITE_SNAPSHOT"]
 
     it "eliminates any trailing '/' characters from HUBOT_GRAPHITE_URL", (done) ->
       process.env["HUBOT_GRAPHITE_URL"] = url + "///"

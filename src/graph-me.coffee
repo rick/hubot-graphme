@@ -61,6 +61,7 @@ module.exports = (robot) ->
     process.env["HUBOT_GRAPHITE_S3_IMAGE_PATH"].replace(/\/+$/, "")
 
   config = {
+      snapshot        : process.env["HUBOT_GRAPHITE_SNAPSHOT"],
       bucket          : process.env["HUBOT_GRAPHITE_S3_BUCKET"],
       accessKeyId     : process.env["HUBOT_GRAPHITE_S3_ACCESS_KEY_ID"],
       secretAccessKey : process.env["HUBOT_GRAPHITE_S3_SECRET_ACCESS_KEY"],
@@ -89,10 +90,13 @@ module.exports = (robot) ->
 
   # Fetch an image from provided URL, upload it to S3, returning the resulting URL
   fetchAndUpload = (msg, url) ->
-    msg.reply url
     request url, { encoding: null }, (err, response, body) ->
       if typeof body isnt "undefined" # hacky
-        uploadToS3(msg, body, body.length, response.headers["content-type"])
+        if config["snapshot"]
+          msg.reply "wtf"
+          uploadToS3(msg, body, body.length, response.headers["content-type"], url)
+        else
+          msg.reply url
       else
         msg.reply "Graphite request error: #{err}, response: #{response}"
 
@@ -112,19 +116,18 @@ module.exports = (robot) ->
     }
     uploadClient().put(uploadPath(filename), headers)
 
-  uploadToS3 = (msg, content, length, content_type) ->
+  uploadToS3 = (msg, content, length, content_type, failureMessage) ->
     filename = randomFilename()
     req = buildUploadRequest(filename, length, content_type)
     req.on "response", (res) ->
       if (200 == res.statusCode)
         msg.reply imgURL(filename)
-        return true
       else
+        msg.reply failureMessage
         msg.reply "Image snapshot upload error: \##{res.statusCode} - #{res.statusMessage}"
-        return false
     req.on "error", (err) ->
+      msg.reply failureMessage
       msg.reply "Image snapshot upload error: \##{err.statusCode} - #{err.statusMessage}"
-      return false
     req.end(content)
 
   #
