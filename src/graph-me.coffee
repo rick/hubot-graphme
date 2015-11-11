@@ -168,3 +168,4 @@ module.exports = (robot) ->
         msg.reply "Type: `help graph` for usage info"
     else
       msg.send "Configuration variables are not set: #{notConfigured().join(", ")}."
+      msg.send "#{url}/render?#{query.join("&")}"
