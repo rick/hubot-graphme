@@ -36,8 +36,7 @@ module.exports = (robot) ->
     result
 
   isConfigured = () ->
-    return true
-    #notConfigured().length != 0
+    process.env["HUBOT_GRAPHITE_URL"]
 
   buildQuery = (from, through, targets) ->
     return false unless targets
